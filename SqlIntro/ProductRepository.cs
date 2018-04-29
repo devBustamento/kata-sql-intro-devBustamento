@@ -15,7 +15,7 @@ namespace SqlIntro
 
         public ProductRepository(string connectionString)
         {
-            _connectionString = connectionString;
+            _connectionString = connectionString; //why do we do this
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace SqlIntro
             {   
                 conn.Open();
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM products WHERE ProductID" + id; 
+                cmd.CommandText = "DELETE FROM product WHERE ProductID =" + id; //whys it want us to extract method
                 cmd.ExecuteNonQuery();
             }
         }
@@ -63,7 +63,7 @@ namespace SqlIntro
             {   
                 conn.Open();
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = "update product set name = @name where id = @id";
+                cmd.CommandText = "UPDATE product SET name = @name WHERE id = @id";
                 cmd.Parameters.AddWithValue("@name", prod.Name);
                 cmd.Parameters.AddWithValue("@id", prod.Id);
                 cmd.ExecuteNonQuery();
@@ -79,7 +79,7 @@ namespace SqlIntro
             {   
                 conn.Open();
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = "INSERT into product (name) values(@name)";
+                cmd.CommandText = "INSERT INTO product (name) VALUES(@name)";
                 cmd.Parameters.AddWithValue("@name", prod.Name);
                 cmd.ExecuteNonQuery();
             }
