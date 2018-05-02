@@ -9,26 +9,26 @@ using MySql.Data.MySqlClient;
 
 namespace SqlIntro
 {
-    public class ProductRepository
+    public class ProductRepository : IProductRepository
     {
         private readonly string _connectionString;
 
         public ProductRepository(string connectionString)
         {
-            _connectionString = connectionString; //why do we do this
+            _connectionString = connectionString; 
         }
 
         /// <summary>
         /// Reads all the products from the products table
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<Product> GetProducts()
+        public IEnumerable<Product> GetProducts() 
         {
             using (var conn = new MySqlConnection(_connectionString))
             {
                 conn.Open();
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT * FROM product;"; 
+                cmd.CommandText = "SELECT ProductId as Id, Name FROM product;"; 
                 var dr = cmd.ExecuteReader();
                 while (dr.Read())
                 {
@@ -44,23 +44,22 @@ namespace SqlIntro
         public void DeleteProduct(int id)
         {
             using (var conn = new MySqlConnection(_connectionString))
-            {   
+            {
                 conn.Open();
                 var cmd = conn.CreateCommand();
-                cmd.CommandText = "DELETE FROM product WHERE ProductID =" + id; //whys it want us to extract method
+                cmd.CommandText = "DELETE FROM product WHERE ProductID = @id";
+                cmd.Parameters.AddWithValue("@id", id);
                 cmd.ExecuteNonQuery();
             }
         }
-        /// <summary
+        /// <summary>
         /// Updates the Product in the database
         /// </summary>
         /// <param name="prod"></param>
         public void UpdateProduct(Product prod)
         {
-            //This is annoying and unnecessarily tedious for large objects.
-            //More on this in the future...  Nothing to do here..
             using (var conn = new MySqlConnection(_connectionString))
-            {   
+            {
                 conn.Open();
                 var cmd = conn.CreateCommand();
                 cmd.CommandText = "UPDATE product SET name = @name WHERE id = @id";
@@ -76,12 +75,42 @@ namespace SqlIntro
         public void InsertProduct(Product prod)
         {
             using (var conn = new MySqlConnection(_connectionString))
-            {   
+            {
                 conn.Open();
                 var cmd = conn.CreateCommand();
                 cmd.CommandText = "INSERT INTO product (name) VALUES(@name)";
                 cmd.Parameters.AddWithValue("@name", prod.Name);
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        public IEnumerable<Product> GetProductsWithReview()
+        {
+            using (var conn = new MySqlConnection(_connectionString))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT p.ProductID, p.Name, pr.Comments FROM product as p INNER JOIN productreview as pr ON p.ProductID = pr.ProductID;"; 
+                var dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    yield return new Product { Name = dr["Name"].ToString(), Comments = dr["Comments"].ToString() };
+                }
+            } 
+        }
+
+        public IEnumerable<Product> GetProductsAndReviews()
+        {
+            using (var conn = new MySqlConnection(_connectionString))
+            {
+                conn.Open();
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT p.ProductID, p.Name, pr.Comments product as p LEFT JOIN productreview as pr ON p.ProductID = pr.ProductID; ";
+                var dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    yield return new Product { Name = dr["Name"].ToString(), Comments = dr["Comments"].ToString() };
+                }
             }
         }
     }
